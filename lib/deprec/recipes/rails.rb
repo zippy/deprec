@@ -31,6 +31,7 @@ Capistrano::Configuration.instance(:must_exist).load do
     top.deprec.rails.activate_services
     top.deprec.rails.set_perms_on_shared_and_releases
     top.deprec.web.reload
+    top.deprec.rails.generate_database_yml unless database_yml_in_scm
     top.deprec.rails.setup_database
   end
 
@@ -50,13 +51,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       # If database.yml is not kept in scm and it is present in local
       # config dir then push it out to server.
       #
-      before 'deprec:rails:symlink_database_yml', :roles => :app do
-        push_database_yml unless database_yml_in_scm
-      end
+      #before 'deprec:rails:symlink_database_yml', :roles => :app do
+      #  push_database_yml unless database_yml_in_scm
+      #end
       
       task :setup_database, :roles => :db do
         if ! roles[:db].servers.empty? # Some apps don't use database!
-          deprec2.read_database_yml
+          top.deprec.database.load_params
           top.deprec.db.create_user
           top.deprec.db.create_database
           top.deprec.db.grant_user_access_to_database
@@ -226,49 +227,28 @@ Capistrano::Configuration.instance(:must_exist).load do
         top.deprec.monit.activate
       end
 
-      # database.yml stuff
-      #
-      # XXX DRY this up 
-      # I don't know how to let :gen_db_yml check if values have been set.
-      #
-      # if (self.respond_to?("db_host_#{rails_env}".to_sym)) # doesn't seem to work
+      desc "prompt the user for the parameters that need to be the database.yml file and push it up to the server"
+      task :generate_database_yml, :roles => :app do
+        set :db_params, deprec2.build_db_params
+        upload_database_yml
+      end
 
-      set :db_host_default, lambda { Capistrano::CLI.prompt 'Enter database host', 'localhost'}
-      set :db_host_staging, lambda { db_host_default }
-      set :db_host_production, lambda { db_host_default }
+      desc "create a default set of parameters that for the database.yml file and push it up to the server"
+      task :generate_default_database_yml, :roles => :app do
+        set :db_params, deprec2.build_db_params(false)
+        upload_database_yml
+      end
 
-      set :db_name_default, lambda { Capistrano::CLI.prompt 'Enter database name', "#{application}_#{rails_env}" }
-      set :db_name_staging, lambda { db_name_default }
-      set :db_name_production, lambda { db_name_default }
-
-      set :db_user_default, lambda { Capistrano::CLI.prompt 'Enter database user', 'root' }
-      set :db_user_staging, lambda { db_user_default }
-      set :db_user_production, lambda { db_user_default }
-
-      set :db_pass_default, lambda { Capistrano::CLI.prompt 'Enter database pass', '' }
-      set :db_pass_staging, lambda { db_pass_default }
-      set :db_pass_production, lambda { db_pass_default }
-
-      set :db_adaptor_default, lambda { Capistrano::CLI.prompt 'Enter database adaptor', 'mysql' }
-      set :db_adaptor_staging, lambda { db_adaptor_default }
-      set :db_adaptor_production, lambda { db_adaptor_default }
-
-      set :db_socket_default, lambda { Capistrano::CLI.prompt('Enter database socket', '')}
-      set :db_socket_staging, lambda { db_socket_default }
-      set :db_socket_production, lambda { db_socket_default }
-
-      task :generate_database_yml, :roles => :app do    
-        database_configuration = render :template => <<-EOF
-        #{rails_env}:
-        adapter: #{self.send("db_adaptor_#{rails_env}")}
-        database: #{self.send("db_name_#{rails_env}")}
-        username: #{self.send("db_user_#{rails_env}")}
-        password: #{self.send("db_pass_#{rails_env}")}
-        host: #{self.send("db_host_#{rails_env}")}
-        socket: #{self.send("db_socket_#{rails_env}")}
-        EOF
-        run "mkdir -p #{deploy_to}/#{shared_dir}/config" 
-        put database_configuration, "#{deploy_to}/#{shared_dir}/config/database.yml" 
+      # this task adapted from http://crackthenut.cracklabs.com/deprec2-your-slice/
+      desc "create a yaml file from the db_params hash and push it up to the servers config/database.yml"
+      task :upload_database_yml, :roles => :app do
+        database_yml = "#{rails_env}:\n"
+        db_params.each do |param, default_val|
+          val=self.send("db_#{param}")
+          database_yml<<"  #{param}: #{val}\n"
+        end
+        run "mkdir -p #{deploy_to}/#{shared_dir}/config"
+        put database_yml, "#{deploy_to}/#{shared_dir}/config/database.yml"
       end
 
       desc "Link in the production database.yml" 
@@ -307,10 +287,31 @@ Capistrano::Configuration.instance(:must_exist).load do
         run "cd #{deploy_to}/current && rake db:rollback RAILS_ENV=#{rails_env}"
       end
 
+      desc "Sets the db parameters taking into account whether they are stored in scm or independently on the server"
+      task :load_params do
+        # the database_yml is stored in the scm then the local version of config/database.yml
+        # will be correct for loading the db_params.  Otherwise we have to go out to the server
+        # and get it's copy
+        
+        begin
+          if database_yml_in_scm
+            file_name = 'config/database.yml'
+          else
+            file_name = "/tmp/database.yml"+Time.now.to_i.to_s
+            get "#{deploy_to}/#{shared_dir}/config/database.yml",file_name
+          end
+          set :db_params, YAML.load_file(file_name)
+          set :db_user, db_params[rails_env]["username"]
+          set :db_password, db_params[rails_env]["password"] 
+          set :db_name, db_params[rails_env]["database"]
+        ensure
+          File.delete(file_name) if !database_yml_in_scm
+        end
+      end
     end
 
   end
-  
+
 end
 
 
