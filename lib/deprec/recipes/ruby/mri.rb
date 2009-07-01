@@ -5,8 +5,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     namespace :mri do
             
       SRC_PACKAGES[:mri] = {
-        :md5sum => "5e5b7189674b3a7f69401284f6a7a36d  ruby-1.8.7-p72.tar.gz", 
-        :url => "ftp://ftp.ruby-lang.org/pub/ruby/1.8/ruby-1.8.7-p72.tar.gz",
+        :md5sum => "18dcdfef761a745ac7da45b61776afa5  ruby-1.8.7-p174.tar.gz", 
+        :url => "ftp://ftp.ruby-lang.org/pub/ruby/1.8/ruby-1.8.7-p174.tar.gz",
         :configure => "./configure --with-readline-dir=/usr/local;"
       }
   
@@ -30,8 +30,8 @@ Capistrano::Configuration.instance(:must_exist).load do
     namespace :rubygems do
   
       SRC_PACKAGES[:rubygems] = {
-        :md5sum => "a04ee6f6897077c5b75f5fd1e134c5a9  rubygems-1.3.1.tgz", 
-        :url => "http://rubyforge.org/frs/download.php/45905/rubygems-1.3.1.tgz",
+        :md5sum => "b17b398503253bf36a101c58f02a226f  rubygems-1.3.4.tgz", 
+        :url => "http://rubyforge.org/frs/download.php/57643/rubygems-1.3.4.tgz",
 	      :configure => "",
 	      :make =>  "",
         :install => 'ruby setup.rb;'
