@@ -49,34 +49,58 @@ Capistrano::Configuration.instance(:must_exist).load do
         end 
       }
       
-      SYSTEM_CONFIG_FILES[:network] = [
+      # Non standard deprec!
+      #
+      # I might move to making this standard in future. It makes it easier to 
+      # override individual config files in local recipes. - Mike
+      #
+      SYSTEM_CONFIG_FILES[:network] = {
 
-        {:template => "interfaces.erb",
-          :path => '/etc/network/interfaces',
-          :mode => 0644,
-          :owner => 'root:root'},
+        :interfaces => {
+           :template => "interfaces.erb",
+           :path => '/etc/network/interfaces',
+           :mode => 0644,
+           :owner => 'root:root',
+           :remote => true
+        },
+        
+        :hosts => {
+           :template => "hosts.erb",
+           :path => '/etc/hosts',
+           :mode => 0644,
+           :owner => 'root:root',
+           :remote => true
+        },
 
-        {:template => "hosts.erb",
-         :path => '/etc/hosts',
-         :mode => 0644,
-         :owner => 'root:root'},
-
-        {:template => "hostname.erb",
-         :path => '/etc/hostname',
-         :mode => 0644,
-         :owner => 'root:root'},
+        :hostname => {
+            :template => "hostname.erb",
+            :path => '/etc/hostname',
+            :mode => 0644,
+            :owner => 'root:root',
+            :remote => true
+        },
          
-        {:template => "resolv.conf.erb",
-         :path => '/etc/resolv.conf',
-         :mode => 0644,
-         :owner => 'root:root'}
+        :resolv => {
+          :template => "resolv.conf.erb",
+          :path => '/etc/resolv.conf',
+          :mode => 0644,
+          :owner => 'root:root',
+          :remote => true
+        }
+      }
     
-       ]
-       
+      
+      SYSTEM_CONFIG_FILES[:network].each do |file, details|
+        desc "Generate and push #{details[:path]}"
+        task file.to_sym do
+          deprec2.render_template(:network, details)
+        end
+      end
+      
       # XXX need to set the order for these as it breaks sudo currently
       desc "Update system networking configuration"
       task :config do
-        SYSTEM_CONFIG_FILES[:network].each do |file|
+        SYSTEM_CONFIG_FILES[:network].values.each do |file|
           deprec2.render_template(:network, file.merge(:remote=>true))
         end
       end
@@ -85,8 +109,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :restart do
         sudo '/etc/init.d/networking restart'
       end
-      
-      
+            
     end
   end
   

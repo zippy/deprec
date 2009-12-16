@@ -1,4 +1,47 @@
-== git
+# deprec changelog
+
+= 2.1.5 (Dec  3, 2009)
+
+* collectd-4.8.1
+* haproxy-1.3.22
+* monit-5.0.3
+* don't install vim-full as it installs gnome
+
+= 2.1.4 (Sep 16, 2009)
+
+* rubygems-1.3.5 
+* git-1.6.4.3 
+
+= 2.1.2 (Aug 26, 2009)
+
+* Better support for Capistrano multistage
+  Look for database.yml in config/#{stage}/database.yml
+
+= 2.1.1 (Aug 25, 2009)
+
+* Added haproxy
+
+= 2.1.0 (Aug 24, 2009)
+
+* Added Collectd
+* Added Syslog
+* Updated Nagios to 3.2.0
+
+== 2.0.15 (August 10, 2009)
+
+* Moved apache logs for vhosts into /var/log/apache2 (override by setting :apache_log_dir)
+
+== 2.0.14 (August 10, 2009)
+
+* Added logrotate config for passenger
+
+== 2.0.13 (July 5, 2009)
+
+* Bugfix: updated url for REE (old one went away)
+
+== 2.0.12 (June 24, 2009)
+
+* Updated chef recipes
 
 == 2.0.11 (June 19, 2009)
 

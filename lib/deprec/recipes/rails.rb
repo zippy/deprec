@@ -44,6 +44,19 @@ Capistrano::Configuration.instance(:must_exist).load do
 
   after :deploy, "deploy:cleanup"
   
+  namespace :rake do
+    namespace :gems do
+      task :install, :roles => :app do
+        run "cd #{current_path} && #{sudo} rake gems:install"
+      end
+    end
+  end
+  namespace :db do
+    task :migrate, :roles => :db do
+      run "cd #{current_path} && #{sudo} rake gems:install"
+    end
+  end
+  
   namespace :deprec do
     namespace :rails do
       
@@ -129,14 +142,13 @@ Capistrano::Configuration.instance(:must_exist).load do
       # XXX This should be restricted a bit to limit what app can write to. - Mike
       desc "set group ownership and permissions on dirs app server needs to write to"
       task :make_writable_by_app, :roles => :app do
-        tmp_dir = "#{deploy_to}/current/tmp"
-        shared_dir = "#{deploy_to}/shared"
-        # XXX Factor this out
-        files = ["#{mongrel_log_dir}/mongrel.log", "#{mongrel_log_dir}/#{rails_env}.log"]
-
-        sudo "chgrp -R #{app_group} #{tmp_dir} #{shared_dir}"
-        sudo "chmod -R g+w #{tmp_dir} #{shared_dir}" 
+        dirs = "#{shared_path} #{current_path}/tmp #{current_path}/public"
+        sudo "chgrp -R #{app_group} #{dirs}"
+        sudo "chmod -R g+w #{dirs}" 
+        
         # set owner and group of log files 
+        # XXX Factor out mongrel
+        files = ["#{mongrel_log_dir}/mongrel.log", "#{mongrel_log_dir}/#{rails_env}.log"]
         files.each { |file|
           sudo "touch #{file}"
           sudo "chown #{app_user} #{file}"   
@@ -252,13 +264,15 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       desc "Link in the production database.yml" 
       task :symlink_database_yml, :roles => :app do
-        run "ln -nfs #{shared_path}/config/database.yml #{release_path}/config/database.yml" 
+        run "#{sudo} ln -nfs #{shared_path}/config/database.yml #{current_path}/config/database.yml" 
       end
       
       desc "Copy database.yml to shared/config/database.yml. Useful if not kept in scm"
       task :push_database_yml, :roles => :app do
-        if File.exists?('config/database.yml')
-          put(File.read('config/database.yml'), "#{shared_path}/config/database.yml")
+        stage = exists?(:stage) ? fetch(:stage).to_s : ''
+        full_local_path = File.join('config', stage, 'database.yml')
+        if File.exists?(full_local_path)
+          std.su_put(File.read(full_local_path), "#{shared_path}/config/database.yml", '/tmp/')
         end
       end
       

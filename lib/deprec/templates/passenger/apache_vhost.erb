@@ -6,6 +6,9 @@
         ServerAlias <%= domain.sub(/.*?\./, "assets#{counter}.") %>
       <%- end %>
 	  DocumentRoot "<%= passenger_document_root %>"
+	  CustomLog <%= apache_log_dir %>/<%= application %>-access.log combined
+	  ErrorLog <%= apache_log_dir %>/<%= application %>-error.log
+	  
 	  RailsEnv <%= rails_env %>
 	  RailsAllowModRewrite <%= passenger_rails_allow_mod_rewrite %>
 	  #

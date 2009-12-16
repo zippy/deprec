@@ -16,6 +16,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       set :passenger_rails_allow_mod_rewrite, 'off'
       # Default settings for Passenger config files
       set :passenger_log_level, 0
+      set(:passenger_log_dir) { "#{shared_path}/log"} 
       set :passenger_user_switching, 'on'
       set :passenger_default_user, 'nobody'
       set :passenger_max_pool_size, 6
@@ -102,6 +103,11 @@ Capistrano::Configuration.instance(:must_exist).load do
           :path => 'apache_vhost_disabled',
           :mode => 0755,
           :owner => 'root:root'}
+          
+        {:template => 'logrotate.conf.erb',
+         :path => "logrotate.conf", 
+         :mode => 0644,
+         :owner => 'root:root'}
 
       ]
        
@@ -142,6 +148,11 @@ Capistrano::Configuration.instance(:must_exist).load do
         deprec2.push_configs(:passenger, PROJECT_CONFIG_FILES[:passenger])
         symlink_apache_vhost
         activate_project
+        symlink_logrotate_config
+      end
+      
+      task :symlink_logrotate_config, :roles => :app do
+        sudo "ln -sf #{deploy_to}/passenger/logrotate.conf /etc/logrotate.d/passenger-#{application}"
       end
       
       # Passenger runs Rails as the owner of this file.
@@ -245,7 +256,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       desc "Restart Application"
       task :restart, :roles => :app do
-        run "touch #{current_path}/tmp/restart.txt"
+        run "#{sudo} touch #{current_path}/tmp/restart.txt"
       end
       
       desc "Restart Apache"
