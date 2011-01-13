@@ -9,7 +9,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       set :apache_ssl_ip, nil
       set :apache_ssl_forward_all, apache_ssl_enabled
       set :apache_ssl_chainfile, false
-      set :apache_modules_enabled, %w(rewrite ssl proxy_balancer proxy_http deflate headers)
+      set :apache_modules_enabled, %w(rewrite ssl proxy_balancer proxy_http deflate expires headers)
       set :apache_log_dir, '/var/log/apache2'
        
       desc "Install apache"
@@ -26,15 +26,20 @@ Capistrano::Configuration.instance(:must_exist).load do
       
       SYSTEM_CONFIG_FILES[:apache] = [
         
+        { :template => 'apache2.conf.erb',
+          :path => '/etc/apache2/apache2.conf',
+          :mode => 0644,
+          :owner => 'root:root'},
+
         { :template => 'namevirtualhosts.conf',
           :path => '/etc/apache2/conf.d/namevirtualhosts.conf',
           :mode => 0644,
           :owner => 'root:root'},
           
-        # { :template => 'ports.conf.erb',
-        #   :path => '/etc/apache2/ports.conf',
-        #   :mode => 0644,
-        #   :owner => 'root:root'},
+        { :template => 'ports.conf.erb',
+          :path => '/etc/apache2/ports.conf',
+          :mode => 0644,
+          :owner => 'root:root'},
 
         { :template => 'status.conf.erb',
           :path => '/etc/apache2/mods-available/status.conf',

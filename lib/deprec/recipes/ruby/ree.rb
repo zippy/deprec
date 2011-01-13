@@ -2,36 +2,25 @@
 Capistrano::Configuration.instance(:must_exist).load do 
   namespace :deprec do     
     namespace :ree do
-      set :ree_version, 'ruby-enterprise-1.8.6-20090610'
-      set :ree_install_dir, "/opt/#{ree_version}"
-      set :ree_short_path, '/opt/ruby-enterprise'
+
+      set :ree_install_dir, "/usr/local"
       
       SRC_PACKAGES[:ree] = {
-        :md5sum => "0bf66ee626918464a6eccdd83c99d63a #{ree_version}.tar.gz",
-        :url => "http://rubyforge.org/frs/download.php/58677/#{ree_version}.tar.gz",
-        :configure => '',
-        :make => '',
-        :install => "./installer --auto /opt/#{ree_version}"
+        :md5sum => "62e7ee838532744d5a155a16571f782e  ruby-enterprise_1.8.7-2010.02_i386_ubuntu8.04.deb",
+        :url => "http://rubyforge.org/frs/download.php/71097/ruby-enterprise_1.8.7-2010.02_amd64_ubuntu8.04.deb",
+        :download_method => :deb
       }
  
       task :install do
         install_deps
         deprec2.download_src(SRC_PACKAGES[:ree], src_dir)
         deprec2.install_from_src(SRC_PACKAGES[:ree], src_dir)
-        symlink_ree
+        gem2.update_system # Install latest rubygems
       end
       
       task :install_deps do
-        apt.install({:base => %w(libssl-dev libmysqlclient15-dev libreadline5-dev)}, :stable)
-      end
-      
-      task :symlink_ree do
-        sudo "ln -sf /opt/#{ree_version} #{ree_short_path}"
-        sudo "ln -fs #{ree_short_path}/bin/gem /usr/local/bin/gem"
-        sudo "ln -fs #{ree_short_path}/bin/irb /usr/local/bin/irb"
-        sudo "ln -fs #{ree_short_path}/bin/rake /usr/local/bin/rake"
-        sudo "ln -fs #{ree_short_path}/bin/rails /usr/local/bin/rails"
-        sudo "ln -fs #{ree_short_path}/bin/ruby /usr/local/bin/ruby"
+        # not required with new deb package?
+        # apt.install({:base => %w(libssl-dev libmysqlclient15-dev libreadline5-dev)}, :stable)
       end
       
     end

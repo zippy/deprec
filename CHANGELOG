@@ -1,5 +1,46 @@
 # deprec changelog
 
+= 2.1.14 (Sep  27, 2010)
+
+* daemonize-1.6
+* ree i386 hardy deb package
+
+= 2.1.13 (Sep  17, 2010)
+
+Added syslog_ng recipes
+
+= 2.1.10 (Sep   4, 2010)
+
+* Removed integrity recipes - causing a problem with ruby 1.9.2
+
+= 2.1.10 (Sep  4, 2010)
+
+* Get all user input at start (deprec:users:add)
+
+= 2.1.9 (Sep  4, 2010)
+
+* Added syslog-ng
+* Added stunnel
+* Added external config options for deprec:users:add
+* Added config variables to sshd_config template
+* Added recipe to push out file with bash options I want everywhere
+* deprec:users:add looks harder for your public ssh keys
+* current_user now contains the output from `whois`
+
+= 2.1.8 (Aug 26, 2010)
+ 		
+* nagios-3.2.1
+* nagios-plugins-1.4.15
+
+= 2.1.7 (July 4, 2010)
+ 		
+* ruby-enterprise-1.8.7-2010.02 [jgrevich]
+
+= 2.1.6 (Mar  3, 2009)
+
+* monit-5.1.1
+* haproxy-1.4.0
+
 = 2.1.5 (Dec  3, 2009)
 
 * collectd-4.8.1

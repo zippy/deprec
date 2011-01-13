@@ -4,11 +4,9 @@ Capistrano::Configuration.instance(:must_exist).load do
     namespace :utils do
 
         SRC_PACKAGES[:daemonize] = {
-          :filename => 'daemonize-1.5.6.tar.gz',
-          :md5sum => "2f5fbb8788ebe803ccaff3cd4b5c3188  daemonize-1.5.6.tar.gz",
-          :dir => 'daemonize-1.5.6',
-          :url => "http://www.clapper.org/software/daemonize/daemonize-1.5.6.tar.gz",
-          :unpack => "tar zxf daemonize-1.5.6.tar.gz;",
+          :md5sum => "62aef13cf2dbc305b8c2c033a26cc18d  bmc-daemonize-release-1.6-0-gf9d8e03.tar.gz",
+          :dir => 'bmc-daemonize-f9d8e03',
+          :url => "http://github.com/bmc/daemonize/tarball/release-1.6",
           :configure => %w(
             ./configure
             ;
@@ -50,6 +48,11 @@ Capistrano::Configuration.instance(:must_exist).load do
           net
           mail
           other
+        end
+
+        task :remove_consolekit do
+          run "#{sudo} killall console-kit-daemon"
+          run "#{sudo} apt-get -y remove consolekit # chews resources"
         end
 
     end
