@@ -102,7 +102,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         { :template => 'apache_vhost_disabled.erb',
           :path => 'apache_vhost_disabled',
           :mode => 0755,
-          :owner => 'root:root'}
+          :owner => 'root:root'},
           
         {:template => 'logrotate.conf.erb',
          :path => "logrotate.conf", 
