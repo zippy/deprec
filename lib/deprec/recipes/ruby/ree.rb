@@ -6,8 +6,10 @@ Capistrano::Configuration.instance(:must_exist).load do
       set :ree_install_dir, "/usr/local"
       
       SRC_PACKAGES[:ree] = {
-        :md5sum => "62e7ee838532744d5a155a16571f782e  ruby-enterprise_1.8.7-2010.02_i386_ubuntu8.04.deb",
-        :url => "http://rubyforge.org/frs/download.php/71097/ruby-enterprise_1.8.7-2010.02_amd64_ubuntu8.04.deb",
+#        :md5sum => "62e7ee838532744d5a155a16571f782e  ruby-enterprise_1.8.7-2010.02_i386_ubuntu8.04.deb",
+#        :url => "http://rubyforge.org/frs/download.php/71099/ruby-enterprise_1.8.7-2010.02_i386_ubuntu8.04.deb",
+#        :url => "http://rubyforge.org/frs/download.php/71097/ruby-enterprise_1.8.7-2010.02_amd64_ubuntu8.04.deb",
+        :url => "http://rubyenterpriseedition.googlecode.com/files/ruby-enterprise_1.8.7-2011.03_amd64_ubuntu10.04.deb",
         :download_method => :deb
       }
  
