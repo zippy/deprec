@@ -12,6 +12,7 @@ module Deprec2
     yield
     ENV['ROLES'] = old_roles.to_s unless ENV['HOSTS']
   end
+
   
   # Temporarily ignore ROLES and HOSTS
   def ignoring_roles_and_hosts
@@ -77,10 +78,10 @@ module Deprec2
     elsif path 
       # render to local file
       full_path = File.join('config', stage, app.to_s, path)
-      path_dir = File.dirname(full_path)
+      path_dir = File.dirname(File.expand_path(full_path))
       if File.exists?(full_path)
         if IO.read(full_path) == rendered_template
-          puts "[skip] File exists and is identical (#{full_path})."
+          puts "[skip] Identical file exists (#{full_path})."
           return false
         elsif overwrite?(full_path, rendered_template)
           File.delete(full_path)
@@ -92,7 +93,7 @@ module Deprec2
       FileUtils.mkdir_p "#{path_dir}" if ! File.directory?(path_dir)
       # added line above to make windows compatible
       # system "mkdir -p #{path_dir}" if ! File.directory?(path_dir) 
-      File.open(full_path, 'w'){|f| f.write rendered_template }
+      File.open(File.expand_path(full_path), 'w'){|f| f.write rendered_template }
       puts "[done] #{full_path} written"
     else
       # render to string
@@ -203,8 +204,12 @@ module Deprec2
     options[:shell] ||= '/bin/bash' # new accounts on ubuntu 6.06.1 have been getting /bin/sh
     switches = ''
     switches += " --shell=#{options[:shell]} " if options[:shell]
-    switches += ' --create-home ' unless options[:homedir] == false
+    unless options[:homedir] == false
+      switches += ' --create-home '
+      switches += " --home #{options[:homedir]} " if options[:homedir]
+    end
     switches += " --gid #{options[:group]} " unless options[:group].nil?
+    invoke_command "#{sudo} mkdir -p #{File.dirname(options[:homedir])}" if options[:homedir]
     invoke_command "grep '^#{user}:' /etc/passwd || #{sudo} /usr/sbin/useradd #{switches} #{user}", 
     :via => run_method
   end
@@ -213,7 +218,7 @@ module Deprec2
   def groupadd(group, options={})
     via = options.delete(:via) || run_method
     # XXX I don't like specifying the path to groupadd - need to sort out paths before long
-    invoke_command "grep '#{group}:' /etc/group || #{sudo} /usr/sbin/groupadd #{group}", :via => via
+    invoke_command "grep '^#{group}:' /etc/group || #{sudo} /usr/sbin/groupadd #{group}", :via => via
   end
 
   # add group to the list of groups this user belongs to
@@ -241,7 +246,7 @@ module Deprec2
   end
   
   # download source pkg if we don't already have it
-  def download_src(src_pkg, src_dir)
+  def download_src(src_pkg, src_dir=src_dir)
     set_pkg_defaults(src_pkg)
     create_src_dir
     # check if file exists and if we have an MD5 hash or bytecount to compare 
@@ -278,7 +283,7 @@ module Deprec2
   end
 
   # unpack src and make it writable by the group
-  def unpack_src(src_pkg, src_dir)
+  def unpack_src(src_pkg, src_dir=src_dir)
     set_pkg_defaults(src_pkg)
     pkg_dir = File.join([src_dir, src_pkg[:dir]].compact)
     case src_pkg[:download_method]
@@ -319,7 +324,8 @@ module Deprec2
   end
 
   # install pkg from source
-  def install_from_src(src_pkg, src_dir)
+  def install_from_src(src_pkg, src_dir=src_dir)
+    install_deps(src_pkg[:deps])
     set_pkg_defaults(src_pkg)
     pkg_dir = File.join([src_dir, src_pkg[:dir]].compact)
     unpack_src(src_pkg, src_dir)
@@ -328,6 +334,10 @@ module Deprec2
     run "cd #{pkg_dir} && #{sudo} #{src_pkg[:make]}" if src_pkg[:make] != ''
     run "cd #{pkg_dir} && #{sudo} #{src_pkg[:install]}" if src_pkg[:install] != ''
     run "cd #{pkg_dir} && #{sudo} #{src_pkg[:post_install]}" if src_pkg[:post_install] != ''
+  end
+
+  def install_deps(packages=[])
+    apt.install({:base => Array(packages)}, :stable)
   end
   
   def read_database_yml
@@ -408,33 +418,6 @@ module Deprec2
       end
     end
   end
-
-  # We don't need this. Put 'USER=root' on the command line instead.
-  #
-  # XXX Not working in deprec2
-  # ##
-  # # Run a command using the root account.
-  # #
-  # # Some linux distros/VPS providers only give you a root login when you install.
-  # 
-  # def run_as_root(shell_command)
-  #   std.connect_as_root do |tempuser|
-  #     run shell_command
-  #   end
-  # end
-  # 
-  # ##
-  # # Run a task using root account.
-  # #
-  # # Some linux distros/VPS providers only give you a root login when you install.
-  # #
-  # # tempuser: contains the value replaced by 'root' for the duration of this call
-  # 
-  # def as_root()
-  #   std.connect_as_root do |tempuser|
-  #     yield tempuser
-  #   end
-  # end
 
   private
 

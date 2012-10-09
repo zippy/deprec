@@ -1,6 +1,50 @@
 # deprec changelog
 
-= 2.1.14 (Sep  27, 2010)
+= 2.2.3  (Jul 15, 2011)
+
+* deprec now provides rake tasks
+
+  Add this to your Rakefile
+
+    require 'deprec/rake'
+
+  or you could even add this to your Gemfile
+
+    gem 'deprec', :require => 'deprec/rake'
+
+= 2.2.0  (Jul 10, 2011)
+
+* First release since rewrite of http://deprec.org
+* Tidy up of various recipes
+* Introduction of deprec:rack namespace
+
+= 2.1.20 (Mar 4, 2011)
+
+* generate apache vhost to current dir if config/ not present
+
+= 2.1.19 (Mar 4, 2011)
+
+* replaced mailx with mailutils
+* cap deprec:apache:vhost # handy vhost generator
+
+= 2.1.18 (Feb 4, 2011)
+
+* bugfix: nagios report plugin execution was not installing
+
+= 2.1.17 (Feb 3, 2011)
+
+* Passenger vhost sets RackEnv and RailsEnv
+* nagios-3.2.3
+
+= 2.1.16 (Jan 13, 2011)
+
+* bugfix: ddt does not require call to 'configure'
+
+= 2.1.15 (Oct 04, 2010)
+
+* deprec:ec2 namespace as a basis for ec2 recipes
+
+= 2.1.14 (Sep 27, 2010)
 
 * daemonize-1.6
 * ree i386 hardy deb package

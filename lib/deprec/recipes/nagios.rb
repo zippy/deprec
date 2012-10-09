@@ -10,11 +10,10 @@ Capistrano::Configuration.instance(:must_exist).load do
       set(:nagios_admin_pass) { Capistrano::CLI.ui.ask "Enter password for nagiosadmin user" }
       set :nagios_cmd_group, 'nagcmd' # Submit external commands through the web interface
       set :nagios_htpasswd_file, '/usr/local/nagios/etc/htpasswd.users'
-      # default :application, 'nagios' 
       
       SRC_PACKAGES[:nagios] = {
-        :url => "http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-3.2.1.tar.gz",
-        :md5sum => "d4655ee8c95c9679fd4fd53dac34bbe3  nagios-3.2.1.tar.gz",
+        :url => "http://prdownloads.sourceforge.net/sourceforge/nagios/nagios-3.2.3.tar.gz",
+        :md5sum => "fe1be46e6976a52acdb021a782b5d04b  nagios-3.2.3.tar.gz",
         :configure => "./configure --with-command-group=nagcmd;",
         :make => 'make all;',
         :install => 'make install install-init install-commandmode install-webconf;'
@@ -25,7 +24,6 @@ Capistrano::Configuration.instance(:must_exist).load do
         install
         top.deprec.nagios_plugins.install
         top.deprec.nrpe.install
-        config_gen
         config
       end
       
@@ -46,7 +44,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       
       # Install dependencies for nagios
       task :install_deps, :roles => :nagios do
-        apt.install( {:base => %w(apache2 mailx postfix libapache2-mod-php5 libgd2-xpm-dev)}, :stable )
+        apt.install( {:base => %w(apache2 mailutils postfix libapache2-mod-php5 libgd2-xpm-dev)}, :stable )
       end
       
       task :create_nagios_user, :roles => :nagios do
@@ -140,7 +138,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       
       desc "Push nagios config files to server"
       task :config, :roles => :nagios do
-        default :application, 'nagios'
+        # default :application, 'nagios'
         deprec2.push_configs(:nagios, SYSTEM_CONFIG_FILES[:nagios])
         config_check
         restart
@@ -150,20 +148,6 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :config_check, :roles => :nagios do
         send(run_method, "/usr/local/nagios/bin/nagios -v /usr/local/nagios/etc/nagios.cfg")
       end
-      
-      # desc "Set Nagios to start on boot"
-      # task :activate, :roles => :nagios do
-      #   send(run_method, "update-rc.d nagios defaults")
-      #   sudo "a2ensite nagios"
-      #   top.deprec.apache.reload
-      # end
-      # 
-      # desc "Set Nagios to not start on boot"
-      # task :deactivate, :roles => :nagios do
-      #   send(run_method, "update-rc.d -f nagios remove")
-      #   sudo "a2dissite nagios"
-      #   top.deprec.apache.reload
-      # end
       
       # Control
 
@@ -233,7 +217,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     namespace :nrpe do
       
-      default :nrpe_enable_command_args, false # set to true to compile nrpe to accept arguments
+      set :nrpe_enable_command_args, false # set to true to compile nrpe to accept arguments
 	                                       # note that you'll need to set it before these recipes are loaded (e.g. in .caprc)
       
       SRC_PACKAGES[:nrpe] = {
@@ -241,7 +225,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         :md5sum => "b2d75e2962f1e3151ef58794d60c9e97  nrpe-2.12.tar.gz", 
         :configure => "./configure --with-nagios-user=#{nagios_user} --with-nagios-group=#{nagios_group} #{ '--enable-command-args' if nrpe_enable_command_args};",
         :make => 'make all;',
-        :install => 'make install-plugin; make install-daemon; make install-daemon-config;'
+        :install => 'make install-plugin install-daemon install-daemon-config;'
       }
     
       desc 'Install NRPE'
