@@ -40,17 +40,17 @@ Capistrano::Configuration.instance(:must_exist).load do
 
       desc "Start ssh"
       task :start do
-        send(run_method, "/etc/init.d/ssh reload")
+        send(run_method, "service ssh start")
       end
     
       desc "Stop ssh"
       task :stop do
-        send(run_method, "/etc/init.d/ssh reload")
+        send(run_method, "service ssh stop")
       end
     
       desc "Restart ssh"
       task :restart do
-        send(run_method, "/etc/init.d/ssh restart")
+        send(run_method, "service ssh restart")
       end
     
       desc "Reload ssh"
