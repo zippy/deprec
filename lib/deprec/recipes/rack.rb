@@ -11,7 +11,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         top.deprec.ruby.install       # Uses ruby_vm_type
         gem2.install 'bundler'
         # Some things Rails needs
-        apt.install( { :base => %w(libmysqlclient15-dev sqlite3 libsqlite3-ruby libsqlite3-dev libpq-dev libyaml-dev libxml2-dev libxslt-dev) }, :stable)
+        apt.install( { :base => %w(libmysqlclient15-dev sqlite3 libsqlite3-ruby libsqlite3-dev libpq-dev libxml2-dev libxslt-dev) }, :stable)
 
         top.deprec.web.install        # Uses web_server_type 
         top.deprec.app.install        # Uses app_server_type

@@ -22,7 +22,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       SRC_PACKAGES['ruby-1.9.3-p194'] = {
         :md5sum => "bc0c715c69da4d1d8bd57069c19f6c0e  ruby-1.9.3-p194.tar.gz", 
         :url => "http://ftp.ruby-lang.org/pub/ruby/1.9/ruby-1.9.3-p194.tar.gz",
-        :deps => %w(zlib1g-dev libssl-dev libncurses5-dev libreadline-gplv2-dev),
+        :deps => %w(zlib1g-dev libssl-dev libncurses5-dev libreadline-gplv2-dev libyaml-dev),
         :configure => "./configure",
         :post_install => 'sudo gem update --system'
       }
