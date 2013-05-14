@@ -27,6 +27,15 @@ Capistrano::Configuration.instance(:must_exist).load do
         :post_install => 'sudo gem update --system'
       }
 
+      SRC_PACKAGES['ruby-2.0.0-p0'] = {
+        :md5sum => "db5af5d6034646ad194cbdf6e50f49ee  ruby-2.0.0-p0.tar.gz", 
+        :url => "http://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p0.tar.gz",
+        :deps => %w(zlib1g-dev libssl-dev libncurses5-dev libreadline-gplv2-dev libyaml-dev),
+        :configure => "./configure",
+        :post_install => 'sudo gem update --system'
+      }
+
+
       src_package_options = SRC_PACKAGES.keys.select{|k| k.match /^ruby-\d\.\d\.\d/ }
       set(:mri_src_package) { 
         puts "Select mri_src_package from list:"
