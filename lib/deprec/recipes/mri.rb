@@ -27,9 +27,17 @@ Capistrano::Configuration.instance(:must_exist).load do
         :post_install => 'sudo gem update --system'
       }
 
-      SRC_PACKAGES['ruby-2.0.0-p481.tar.gz'] = {
+      SRC_PACKAGES['ruby-2.0.0-p481'] = {
         :md5sum => "3913e0ad6cc572b7358e4c6a8c4b2551  ruby-2.0.0-p481.tar.gz",
         :url => "http://ftp.ruby-lang.org/pub/ruby/2.0/ruby-2.0.0-p481.tar.gz",
+        :deps => %w(zlib1g-dev libssl-dev libncurses5-dev libreadline-gplv2-dev libyaml-dev),
+        :configure => "./configure",
+        :post_install => 'sudo gem update --system'
+      }
+
+      SRC_PACKAGES['ruby-2.1.2'] = {
+        :md5sum => "a5b5c83565f8bd954ee522bd287d2ca1  ruby-2.1.2",
+        :url => "http://ftp.ruby-lang.org/pub/ruby/2.1/ruby-2.1.2.tar.gz",
         :deps => %w(zlib1g-dev libssl-dev libncurses5-dev libreadline-gplv2-dev libyaml-dev),
         :configure => "./configure",
         :post_install => 'sudo gem update --system'
