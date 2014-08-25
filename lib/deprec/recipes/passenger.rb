@@ -128,8 +128,8 @@ Capistrano::Configuration.instance(:must_exist).load do
       end
 
       task :symlink_apache_vhost, :roles => :app do
-        sudo "ln -sf #{deploy_to}/passenger/apache_vhost #{apache_vhost_dir}/#{application}"
-        sudo "ln -sf #{deploy_to}/passenger/apache_vhost_disabled #{apache_vhost_dir}/#{application}_disabled"
+        sudo "ln -sf #{deploy_to}/passenger/apache_vhost #{apache_vhost_dir}/#{application}.conf"
+        sudo "ln -sf #{deploy_to}/passenger/apache_vhost_disabled #{apache_vhost_dir}/#{application}_disabled.conf"
       end
 
       task :activate, :roles => :app do
