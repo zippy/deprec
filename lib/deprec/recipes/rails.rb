@@ -1,5 +1,5 @@
 # Copyright 2006-2008 by Mike Bailey. All rights reserved.
-Capistrano::Configuration.instance(:must_exist).load do 
+Capistrano::Configuration.instance(:must_exist).load do
 
   set :app_user_prefix,  'app_'
   set(:app_user) { app_user_prefix + application }
@@ -43,21 +43,21 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
   after :deploy, "deploy:cleanup"
-  
+
   namespace :deprec do
     namespace :rails do
 
       task :install, :roles => :app do
-        apt.install( { :base => %w(libmysqlclient15-dev sqlite3 libsqlite3-ruby libsqlite3-dev libpq-dev) }, :stable)
+        apt.install( { :base => %w(libmysqlclient15-dev sqlite3 ruby-sqlite3 libsqlite3-dev libpq-dev) }, :stable)
         gem2.install 'bundler'
       end
 
       desc "Install Ruby on Rails stack on Ubuntu server (8.04, 10.04)"
-      task :install_stack do   
+      task :install_stack do
         puts "deprecated: renamed to deprec:rack:install_stack"
         top.deprec.rack.install_stack
       end
-      
+
       task :install_rails_stack do
         puts "deprecated: renamed to deprec:rack:install_stack"
         top.deprec.rack.install_stack
@@ -70,7 +70,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       #before 'deprec:rails:symlink_database_yml', :roles => :app do
       #  push_database_yml unless database_yml_in_scm
       #end
-      
+
       task :setup_database, :roles => :db do
         if ! roles[:db].servers.empty? # Some apps don't use database!
           top.deprec.database.load_params
@@ -79,7 +79,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           top.deprec.db.grant_user_access_to_database
         end
       end
-      
+
       desc "Generate config files for rails app."
       task :config_gen do
         top.deprec.web.config_gen_project
@@ -95,25 +95,25 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :create_config_dir, :roles => :app do
         deprec2.mkdir("#{shared_path}/config", :group => group, :mode => 0775, :via => :sudo)
       end
-      
+
       # XXX This should be restricted a bit to limit what app can write to. - Mike
       desc "set group ownership and permissions on dirs app server needs to write to"
       task :make_writable_by_app, :roles => :app do
         dirs = "#{shared_path} #{current_path}/tmp #{current_path}/public"
         sudo "chgrp -R #{app_group} #{dirs}"
-        sudo "chmod -R g+w #{dirs}" 
-        
-        # set owner and group of log files 
+        sudo "chmod -R g+w #{dirs}"
+
+        # set owner and group of log files
         # XXX Factor out mongrel
         files = ["#{mongrel_log_dir}/mongrel.log", "#{mongrel_log_dir}/#{rails_env}.log"]
         files.each { |file|
           sudo "touch #{file}"
-          sudo "chown #{app_user} #{file}"   
-          sudo "chgrp #{app_group} #{file}" 
-          sudo "chmod g+w #{file}"   
-        } 
+          sudo "chown #{app_user} #{file}"
+          sudo "chgrp #{app_group} #{file}"
+          sudo "chmod g+w #{file}"
+        }
       end
-      
+
       desc "Create deployment group and add current user to it"
       task :setup_user_perms, :roles => [:app, :web] do
         deprec2.groupadd(group)
@@ -121,19 +121,19 @@ Capistrano::Configuration.instance(:must_exist).load do
         deprec2.groupadd(app_group)
         deprec2.add_user_to_group(user, app_group)
         # we've just added ourself to a group - need to teardown connection
-        # so that next command uses new session where we belong in group 
+        # so that next command uses new session where we belong in group
         deprec2.teardown_connections
       end
-      
+
       desc "Create user and group for application to run as"
       task :create_app_user_and_group, :roles => :app do
-        deprec2.groupadd(app_group) 
+        deprec2.groupadd(app_group)
         deprec2.useradd(app_user, :group => app_group, :homedir => false)
-        # Set the primary group for the user the application runs as (in case 
+        # Set the primary group for the user the application runs as (in case
         # user already existed when previous command was run)
         sudo "usermod --gid #{app_group} --home #{app_user_homedir} #{app_user}"
       end
-      
+
       task :set_perms_on_shared_and_releases, :roles => :app do
         releases = File.join(deploy_to, 'releases')
         sudo "chgrp -R #{group} #{shared_path} #{releases}"
@@ -150,7 +150,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         deprec2.mkdir(deploy_to, :mode => 0775, :group => group, :via => :sudo)
         deprec2.mkdir(shared_path, :mode => 0775, :group => group, :via => :sudo)
       end
-      
+
       # Symlink list of files and dirs from shared to current
       #
       # XXX write up explanation
@@ -165,32 +165,32 @@ Capistrano::Configuration.instance(:must_exist).load do
       desc "Symlink shared dirs."
       task :symlink_shared_dirs, :roles => [:app, :web] do
         if shared_dirs
-          shared_dirs.each do |dir| 
+          shared_dirs.each do |dir|
             path = File.split(dir)[0]
             if path != '.'
               deprec2.mkdir("#{current_path}/#{path}")
             end
             sudo "test -d #{current_path}/#{dir} && mv #{current_path}/#{dir} #{current_path}/#{dir}.moved_by_deprec; exit 0"
-            run "ln -nfs #{shared_path}/#{dir} #{current_path}/#{dir}" 
+            run "ln -nfs #{shared_path}/#{dir} #{current_path}/#{dir}"
           end
         end
       end
-      
+
       task :install_packages_for_project, :roles => :app do
         if packages_for_project
           apt.install({ :base => packages_for_project }, :stable)
         end
       end
-      
+
       task :install_gems_for_project, :roles => :app do
         if gems_for_project
           gems_for_project.each { |gem| gem2.install(gem) }
         end
       end
-      
+
       desc "Activate web, app and monit"
       task :activate_services do
-        top.deprec.web.activate       
+        top.deprec.web.activate
         top.deprec.app.activate
 #        top.deprec.monit.activate
       end
@@ -219,11 +219,11 @@ Capistrano::Configuration.instance(:must_exist).load do
         put database_yml, "#{deploy_to}/#{shared_dir}/config/database.yml"
       end
 
-      desc "Link in the production database.yml" 
+      desc "Link in the production database.yml"
       task :symlink_database_yml, :roles => :app do
-        run "#{sudo} ln -nfs #{shared_path}/config/database.yml #{current_path}/config/database.yml" 
+        run "#{sudo} ln -nfs #{shared_path}/config/database.yml #{current_path}/config/database.yml"
       end
-      
+
       desc "Copy database.yml to shared/config/database.yml. Useful if not kept in scm"
       task :push_database_yml, :roles => :app do
         stage = exists?(:stage) ? fetch(:stage).to_s : ''
@@ -232,11 +232,11 @@ Capistrano::Configuration.instance(:must_exist).load do
           std.su_put(File.read(full_local_path), "#{shared_path}/config/database.yml", '/tmp/')
         end
       end
-      
+
     end
 
     namespace :database do
-      
+
       desc "Create database"
       task :create, :roles => :app do
         run "cd #{deploy_to}/current && rake db:create RAILS_ENV=#{rails_env}"
@@ -246,7 +246,7 @@ Capistrano::Configuration.instance(:must_exist).load do
       task :migrate, :roles => :app do
         run "cd #{deploy_to}/current && rake db:migrate RAILS_ENV=#{rails_env}"
       end
-      
+
       desc "Run database migrations"
       task :schema_load, :roles => :app do
         run "cd #{deploy_to}/current && rake db:schema:load RAILS_ENV=#{rails_env}"
@@ -262,7 +262,7 @@ Capistrano::Configuration.instance(:must_exist).load do
         # the database_yml is stored in the scm then the local version of config/database.yml
         # will be correct for loading the db_params.  Otherwise we have to go out to the server
         # and get it's copy
-        
+
         begin
           if database_yml_in_scm
             file_name = 'config/database.yml'
@@ -272,7 +272,7 @@ Capistrano::Configuration.instance(:must_exist).load do
           end
           set :db_params, YAML.load_file(file_name)
           set :db_user, db_params[rails_env]["username"]
-          set :db_password, db_params[rails_env]["password"] 
+          set :db_password, db_params[rails_env]["password"]
           set :db_name, db_params[rails_env]["database"]
         ensure
           File.delete(file_name) if !database_yml_in_scm
@@ -283,5 +283,3 @@ Capistrano::Configuration.instance(:must_exist).load do
   end
 
 end
-
-
