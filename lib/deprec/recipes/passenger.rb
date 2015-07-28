@@ -3,7 +3,7 @@ Capistrano::Configuration.instance(:must_exist).load do
   namespace :deprec do
     namespace :passenger do
 
-      set :passenger_version, '4.0.42'
+      set :passenger_version, '5.0.14'
       set(:passenger_root) { capture("passenger-config --root").chomp }
       set(:passenger_ruby) { capture("which ruby").chomp }
 
